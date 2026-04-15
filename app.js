@@ -1,26 +1,16 @@
 // Tu "Base de datos" estática mapeada a tu repositorio de GitHub
 const database = [
     {
-        id: 'radio-neverland',
+        id: 'prueba',
         title: 'Radio Neverland Latino',
         author: 'SoyAlert',
-        cover: 'https://i.imgur.com/TuImagenDeEmmaAqui.jpg', // Reemplaza con la ruta de tu repo Ej: './img/emma.jpg'
-        folderPath: 'Listas/RadioNeverlandLatino/',
+        cover: './img/cover.jpg', // Tu ruta real
+        folderPath: 'Listas/prueba/',
         tracks: [
-            { title: 'Dragon Ball Z OP2', file: 'dbz_op2.mp3', time: '3:20' },
-            { title: 'Dragon Ball Z ED2', file: 'dbz_ed2.mp3', time: '1:30' },
-            { title: 'Ranma - La orquesta de la tierra', file: 'ranma_orquesta.mp3', time: '4:15' },
-            { title: 'Ranma - Amor Platonico', file: 'ranma_amor.mp3', time: '3:45' },
-            { title: 'Sailor Moon - OP1 Remake', file: 'sailormoon_op.mp3', time: '2:50' }
+            { title: 'Sailor Moon . En mis sueños HD', file: 'Sailor Moon . En mis sueños HD Completo.mp3' },
+            { title: 'Dragon Ball Z ED2', file: 'dbz_ed2.mp3' },
+            // ... ya no hay "time" ...
         ]
-    },
-    {
-        id: 'musicas-mias',
-        title: 'Musicas mias',
-        author: 'SoyAlert',
-        cover: 'https://i.imgur.com/TuOtraImagenAqui.jpg',
-        folderPath: 'Listas/MusicasMias/',
-        tracks: []
     }
 ];
 
