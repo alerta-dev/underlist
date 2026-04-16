@@ -989,7 +989,7 @@ function renderTracks(tracks) {
 async function loadDurations(tracks) {
   tracks.forEach((t, i) => {
     const a = new Audio();
-    a.src = rawBase + t.path;
+    a.src = rawBase + encodePath(t.path);
     a.preload = 'metadata';
     a.addEventListener('loadedmetadata', () => {
       const el = document.getElementById('dur_' + i);
@@ -1038,11 +1038,15 @@ function makeGridCard(item, type) {
 // ═══════════════════════════════════════════════
 // PLAYER
 // ═══════════════════════════════════════════════
+function encodePath(path) {
+  return path.split("/").map(segment => encodeURIComponent(segment)).join("/");
+}
+
 function playTrack(idx) {
   if (!state.tracks.length) return;
   state.trackIdx = idx;
   const track = state.tracks[idx];
-  const url = rawBase + track.path;
+  const url = rawBase + encodePath(track.path);
   audio.src = url;
   audio.volume = state.volume;
   audio.play().then(() => { state.playing = true; updatePlayUI(); });
