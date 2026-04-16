@@ -1212,6 +1212,9 @@ function saveTitle(el) {
 // ═══════════════════════════════════════════════
 // UTILS
 // ═══════════════════════════════════════════════
+function encodePath(path) {
+  return path.split('/').map(segment => encodeURIComponent(segment)).join('/');
+}  
 function isAudio(name) {
   const ext = name.split('.').pop().toLowerCase();
   return CONFIG.audioExts.includes(ext);
