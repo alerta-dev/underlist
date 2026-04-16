@@ -1094,39 +1094,32 @@ function toggleMute() {
   audio.muted = state.muted;
 }
 
-// Web Audio context para fade suave de volumen
-// Se crea UNA sola vez — createMediaElementSource no puede llamarse dos veces
-let audioCtx = null;
-let gainNode = null;
-let _audioCtxInit = false;
-
-function initAudioCtx() {
-  if (_audioCtxInit) return;
-  _audioCtxInit = true;
-  try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioCtx.createMediaElementSource(audio);
-    gainNode = audioCtx.createGain();
-    gainNode.gain.value = state.volume;
-    source.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-  } catch(e) { audioCtx = null; gainNode = null; }
-}
-// Inicializar en el primer gesto del usuario
-document.addEventListener('click', initAudioCtx, { once: true });
+// Fade suave de volumen usando requestAnimationFrame (sin Web Audio API)
+let _volumeFadeRAF = null;
+let _volumeTarget = state.volume;
+const FADE_SPEED = 0.04; // velocidad de interpolación por frame (~300ms a 60fps)
 
 function setVolume(val) {
-  state.volume = val / 100;
+  _volumeTarget = val / 100;
+  state.volume = _volumeTarget;
   localStorage.setItem('volume', state.volume);
-  if (gainNode && audioCtx) {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const now = audioCtx.currentTime;
-    gainNode.gain.cancelScheduledValues(now);
-    gainNode.gain.setValueAtTime(gainNode.gain.value, now);
-    gainNode.gain.linearRampToValueAtTime(state.volume, now + 0.3);
-  } else {
-    audio.volume = state.volume;
+  startVolumeFade();
+}
+
+function startVolumeFade() {
+  if (_volumeFadeRAF) cancelAnimationFrame(_volumeFadeRAF);
+  function step() {
+    const current = audio.volume;
+    const diff = _volumeTarget - current;
+    if (Math.abs(diff) < 0.005) {
+      audio.volume = _volumeTarget;
+      _volumeFadeRAF = null;
+      return;
+    }
+    audio.volume = Math.max(0, Math.min(1, current + diff * FADE_SPEED * 3));
+    _volumeFadeRAF = requestAnimationFrame(step);
   }
+  _volumeFadeRAF = requestAnimationFrame(step);
 }
 
 function updatePlayUI() {
