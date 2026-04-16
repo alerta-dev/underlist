@@ -987,15 +987,24 @@ function renderTracks(tracks) {
 }
 
 async function loadDurations(tracks) {
-  tracks.forEach((t, i) => {
-    const a = new Audio();
-    a.src = t.download_url || (rawBase + encodePath(t.path));
-    a.preload = 'metadata';
-    a.addEventListener('loadedmetadata', () => {
-      const el = document.getElementById('dur_' + i);
-      if (el) el.textContent = fmtTime(a.duration);
-    }, { once: true });
-  });
+  // Cargar de a 3 en paralelo para no saturar el navegador
+  const BATCH = 3;
+  for (let i = 0; i < tracks.length; i += BATCH) {
+    const batch = tracks.slice(i, i + BATCH);
+    await Promise.all(batch.map((t, offset) => new Promise(resolve => {
+      const idx = i + offset;
+      const a = new Audio();
+      a.preload = 'metadata';
+      a.onloadedmetadata = () => {
+        const el = document.getElementById('dur_' + idx);
+        if (el) el.textContent = fmtTime(a.duration);
+        a.src = ''; // liberar memoria
+        resolve();
+      };
+      a.onerror = () => { resolve(); }; // si falla, seguir igual
+      a.src = t.download_url || (rawBase + encodePath(t.path));
+    })));
+  }
 }
 
 function renderHome() {
