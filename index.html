@@ -510,9 +510,9 @@
 
   #progress-thumb {
     position: absolute;
-    right: -5px;
+    left: 100%;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translate(-50%, -50%);
     width: 10px; height: 10px;
     border-radius: 50%;
     background: var(--text);
@@ -1042,8 +1042,13 @@ function playTrack(idx) {
   const track = state.tracks[idx];
   const url = rawBase + track.path;
   audio.src = url;
-  audio.volume = state.volume;
-  audio.play().then(() => { state.playing = true; updatePlayUI(); });
+  audio.play().then(() => {
+    ensureAudioCtx();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    gainNode.gain.value = state.volume;
+    state.playing = true;
+    updatePlayUI();
+  });
   updateNowPlaying(track);
   highlightTrackRow(idx);
 }
@@ -1092,10 +1097,33 @@ function toggleMute() {
   audio.muted = state.muted;
 }
 
+// Web Audio context para fade suave de volumen
+let audioCtx = null;
+let gainNode = null;
+
+function ensureAudioCtx() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const source = audioCtx.createMediaElementSource(audio);
+  gainNode = audioCtx.createGain();
+  gainNode.gain.value = state.volume;
+  source.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+}
+
 function setVolume(val) {
   state.volume = val / 100;
-  audio.volume = state.volume;
   localStorage.setItem('volume', state.volume);
+  try {
+    ensureAudioCtx();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const now = audioCtx.currentTime;
+    gainNode.gain.cancelScheduledValues(now);
+    gainNode.gain.setValueAtTime(gainNode.gain.value, now);
+    gainNode.gain.linearRampToValueAtTime(state.volume, now + 0.3);
+  } catch(e) {
+    audio.volume = state.volume;
+  }
 }
 
 function updatePlayUI() {
