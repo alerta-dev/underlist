@@ -1002,7 +1002,7 @@ async function loadDurations(tracks) {
         resolve();
       };
       a.onerror = () => { resolve(); }; // si falla, seguir igual
-      a.src = t.download_url || (rawBase + encodePath(t.path));
+      a.src = rawBase + encodePath(t.path);
     })));
   }
 }
@@ -1051,7 +1051,7 @@ function playTrack(idx) {
   if (!state.tracks.length) return;
   state.trackIdx = idx;
   const track = state.tracks[idx];
-  const url = track.download_url || (rawBase + encodePath(track.path));
+  const url = rawBase + encodePath(track.path);
   audio.src = url;
   audio.volume = state.volume;
   audio.play().then(() => { state.playing = true; updatePlayUI(); });
